@@ -288,9 +288,11 @@ wss.on('connection', (ws, req) => {
 
     // Routed-to-partner messages require an active pair.
     if (!ws.partner) return;
-    // Only the controller can push remote-control commands and theme changes.
-    if ((msg.type === 'command' || msg.type === 'theme') && ws.role !== 'controller') return;
-    if (['clipboard', 'command', 'theme'].includes(msg.type)) sendToPartner(ws, raw);
+    // Controller-only message types.
+    const controllerOnly = (msg.type === 'command' || msg.type === 'theme' || msg.type.startsWith('screenshare-'));
+    if (controllerOnly && ws.role !== 'controller') return;
+    const routed = ['clipboard', 'command', 'theme', 'screenshare-start', 'screenshare-frame', 'screenshare-stop'];
+    if (routed.includes(msg.type)) sendToPartner(ws, raw);
   });
 
   ws.on('close', () => {
